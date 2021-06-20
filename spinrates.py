@@ -1,8 +1,16 @@
+import os
+import time
+import random
+from dotenv import load_dotenv
+load_dotenv()
+
 from datetime import datetime
+from pathlib import Path
+import os
+from zipfile import ZipFile
 
 import streamlit as st
-
-import pybaseball as pybll
+from s3fs import S3FileSystem
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,12 +21,51 @@ st.title("Spin Rates")
 st.write("Gathering data...")
 
 
+@st.cache
+def load_cache():
+    loading = Path("loading.txt")
+    try:
+        cache_path = Path(os.environ.get("PYBASEBALL_CACHE", "./pybaseball_cache"))
+        if not cache_path.is_absolute():
+            cache_path = cache_path.absolute()
+        os.environ["PYBASEBALL_CACHE"] = str(cache_path) # ensure path is absolute
+        time.sleep(2 * random.random())
+        if loading.exists():
+            print("Cache is being loaded in a separate process.")
+            while loading.exists():
+                time.sleep(0.1)
+            print("loading.txt has successfully been removed.")
+        if cache_path.exists():
+            print("Cache exists.")
+            return True
+        loading.touch()
+        print("loading.txt created...")
+        s3_cache_path = "s3://pybaseball-spinrates-cache/pybaseball_cache.zip"
+        print(f"Loading cache from {s3_cache_path}")
+        fs = S3FileSystem()
+        with fs.open(s3_cache_path, "rb") as s3_cache:
+            zip = ZipFile(s3_cache)
+            print(f"Extracting files to {cache_path}.")
+            zip.extractall(cache_path)
+
+    finally:
+        if loading.exists():
+            print("Unlinking loading.txt file.")
+            loading.unlink()
+
+    return True
+
+loaded = load_cache()
+
+
+import pybaseball as pybll
 pybll.cache.enable()
 
 START_DATE = "2021-04-01"
 TODAY = str(datetime.now().date())
 ENFORCEMENT_DATE = "2021-06-15"
 
+print("Loading data with pybll now.")
 data = pybll.statcast("2021-04-01", TODAY)
 
 print(data.tail())
