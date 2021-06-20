@@ -11,7 +11,7 @@ conda activate spinrates-env
 ```
 
 ```
-export PYBASEBALL_CACHE="./pybaseball_cache"
+export PYBASEBALL_CACHE="`pwd`/pybaseball_cache"
 python load_cache.py
 ```
 
