@@ -42,7 +42,7 @@ def load_cache():
         print("loading.txt created...")
         s3_cache_path = "s3://pybaseball-spinrates-cache/pybaseball_cache.zip"
         print(f"Loading cache from {s3_cache_path}")
-        fs = S3FileSystem()
+        fs = S3FileSystem(anon=True)
         with fs.open(s3_cache_path, "rb") as s3_cache:
             zip = ZipFile(s3_cache)
             print(f"Extracting files to {cache_path}.")
