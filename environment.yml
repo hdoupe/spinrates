@@ -1,0 +1,12 @@
+name: spinrates-env
+channels:
+  - conda-forge
+dependencies:
+  - pandas
+  - matplotlib
+  - numpy
+  - pip
+  - pyarrow
+  - pip:
+    - streamlit
+    - pybaseball
