@@ -1,9 +1,4 @@
 import os
-import time
-import random
-from dotenv import load_dotenv
-load_dotenv()
-
 from datetime import datetime
 from pathlib import Path
 import os
@@ -23,72 +18,28 @@ st.write("Gathering data...")
 
 @st.cache
 def load_cache():
-    loading = Path("loading.txt")
-    try:
-        cache_path = Path(os.environ.get("PYBASEBALL_CACHE", "./pybaseball_cache"))
-        if not cache_path.is_absolute():
-            cache_path = cache_path.absolute()
-        os.environ["PYBASEBALL_CACHE"] = str(cache_path) # ensure path is absolute
-        time.sleep(2 * random.random())
-        if loading.exists():
-            print("Cache is being loaded in a separate process.")
-            while loading.exists():
-                time.sleep(0.1)
-            print("loading.txt has successfully been removed.")
-        if cache_path.exists():
-            print("Cache exists.")
-            return True
-        loading.touch()
-        print("loading.txt created...")
-        s3_cache_path = "s3://pybaseball-spinrates-cache/pybaseball_cache.zip"
-        print(f"Loading cache from {s3_cache_path}")
+    local_cache_path = Path("statcast_data.parquet")
+    if local_cache_path.exists():
+        cache_path = local_cache_path
+        print(f"Reading data from cache: {cache_path}")
+        df = pd.read_parquet(cache_path, engine="fastparquet")
+    else:
+        cache_path = "s3://pybaseball-spinrates-cache/statcast_data.parquet"
+        print(f"Reading data from cache: {cache_path}")
         fs = S3FileSystem(anon=True)
-        with fs.open(s3_cache_path, "rb") as s3_cache:
-            zip = ZipFile(s3_cache)
-            print(f"Extracting files to {cache_path}.")
-            zip.extractall(cache_path)
+        with fs.open(cache_path, "rb") as f:
+            df = pd.read_parquet(f, engine="fastparquet")
+        
+    return df
 
-    finally:
-        if loading.exists():
-            print("Unlinking loading.txt file.")
-            loading.unlink()
-
-    return True
-
-loaded = load_cache()
-
-
-import pybaseball as pybll
-pybll.cache.enable()
 
 START_DATE = "2021-04-01"
 TODAY = str(datetime.now().date())
 ENFORCEMENT_DATE = "2021-06-15"
 
-print("Loading data with pybll now.")
-data = pybll.statcast("2021-04-01", TODAY)
-
+print("Loading data from cache now.")
+data = load_cache()
 print(data.tail())
-# st.write(data.tail())
-
-data = data[
-    [
-        "game_date",
-        "pitch_type",
-        "release_speed",
-        "batter",
-        "pitcher",
-        "effective_speed",
-        "release_spin_rate",
-        "home_team",
-        "away_team",
-        "inning_topbot",
-        "player_name",
-    ]
-]
-data["game_date"] = pd.to_datetime(data["game_date"], format="%y%m%d")
-
-print(data.head())
 
 st.write(data.head())
 
@@ -99,14 +50,6 @@ ids_dict = ids.set_index("pitcher").to_dict("dict")["player_name"]
 
 st.write("Classifying pitches...")
 
-fastballs = ["FF", "FC", "SI", "FS", "FA", "FT", "SF"]
-offspeed = ["SL", "CU", "CS", "KC", "KN", "SC", "CH", "CB", "EP"]
-other = ["UN", "XX", "PO", "FO"]
-data["pitch_class"] = np.where(
-    data["pitch_type"].isin(fastballs),
-    "fastball",
-    np.where(data["pitch_type"].isin(other), "other", "offspeed"),
-)
 
 pitch_types = ", ".join(
     val for val in data["pitch_type"].unique() if isinstance(val, str)

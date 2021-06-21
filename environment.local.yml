@@ -7,9 +7,10 @@ dependencies:
   - numpy
   - pip
   - pyarrow
-  - fastparquet
   - "s3fs==2021.05.0"
   - boto3
   - aiobotocore
   - pip:
     - streamlit
+    - pybaseball
+    - python-dotenv

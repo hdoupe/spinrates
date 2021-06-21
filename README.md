@@ -4,7 +4,7 @@ Analyze spinrate changes after foreign substance enforecments
 
 
 ```
-conda env create
+conda env create -f environment.local.yml
 ```
 
 ```
