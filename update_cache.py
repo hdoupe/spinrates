@@ -68,7 +68,7 @@ def make_s3_archive():
     s3_archive = f"s3://{bucket}/statcast_data.parquet"
     print(f"Writing to s3 bucket: {s3_archive}")
 
-    with fs.open(s3_archive, "wb") as s3_cache:
+    with fs.open(s3_archive, "wb", acl="public-read") as s3_cache:
         with open(local_path, "rb") as local_cache:
             s3_cache.write(local_cache.read())
 
