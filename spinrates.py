@@ -32,7 +32,10 @@ def load_cache():
 
 START_DATE = "2021-04-01"
 TODAY = str(datetime.now().date())
-ENFORCEMENT_DATE = "2021-06-15"
+# 15th is the memo date
+# ENFORCEMENT_DATE = "2021-06-15"
+# 21st is actual enforcement date
+ENFORCEMENT_DATE = "2021-06-21"
 
 print("Loading data from cache now.")
 data = load_cache()
