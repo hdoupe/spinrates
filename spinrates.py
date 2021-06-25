@@ -151,12 +151,12 @@ full_data["player"] = full_data["pitcher"].map(ids_dict)
 
 st.write("### Pitchers with greatest pct. change in fastball spin rate")
 st.write(
-    full_data[full_data["pitch_class"] == "fastball"].sort_values("pct_change").head(10)
+    full_data[full_data["pitch_class"] == "fastball"].sort_values("pct_change").head(50)
 )
 
 st.write("### Pitchers with greatest pct. change in offspeed spin rate")
 st.write(
-    full_data[full_data["pitch_class"] == "offspeed"].sort_values("pct_change").head(10)
+    full_data[full_data["pitch_class"] == "offspeed"].sort_values("pct_change").head(50)
 )
 
 st.write("## Team level")
